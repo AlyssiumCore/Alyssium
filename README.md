@@ -33,11 +33,6 @@ Synthesizes token risk and trend data into one clear pulse — a living market s
 - **📣 Real-Time Alerts**  
   Stay ahead of threats and signals with instant notifications — before others even notice.
 
----
-
-# 🌟 Alyssium: AI-Powered Blockchain Risk Detection
-
-Alyssium is a myth-inspired AI sentinel built to detect threats, decode token behavior, and illuminate the hidden pathways of Web3. It functions as both shield and oracle — protecting users from dark patterns and unveiling foresight through layered intelligence.
 
 ---
 
@@ -87,8 +82,8 @@ The system evolves from watcher to oracle — gaining foresight, emotional intui
 
 ### 🔮 RiskInsight — Predicting Risks in Blockchain Assets
 Explanation:
-Measures volatility, liquidity, and smart contract red flags
-Returns a color-coded risk signal based on score thresholds
+- Measures volatility, liquidity, and smart contract red flags
+- Returns a color-coded risk signal based on score thresholds
 
 
 ```python
@@ -104,8 +99,8 @@ def risk_insight(price_change, liquidity, contract_flags):
 
 ### 📈 TrendForecast — Real-Time Market Trend Analysis
 Explanation:
-Tracks trading volume momentum and social signals
-Returns trend state: bullish, bearish, or flat
+- Tracks trading volume momentum and social signals
+- Returns trend state: bullish, bearish, or flat
 
 ```python
 def trend_forecast(volume_now, volume_prev, social_mentions):
@@ -120,8 +115,8 @@ def trend_forecast(volume_now, volume_prev, social_mentions):
 
 ### 🛡️ DefendGuard — AI-Powered Risk Defense
 Explanation:
-Detects rugpull patterns, owner manipulation, and honeypot traps
-Provides defensive alerts before user interaction
+- Detects rugpull patterns, owner manipulation, and honeypot traps
+- Provides defensive alerts before user interaction
 
 
 ```python
@@ -136,8 +131,8 @@ def defend_guard(tx_count, blocked_flags, owner_action_freq):
 
 ### 🌐 DataPulse — Market Signal Monitor
 Explanation:
-Merges trend and risk into a single, intuitive pulse
-Ideal for dashboards and live alert systems
+- Merges trend and risk into a single, intuitive pulse
+- Ideal for dashboards and live alert systems
 
 ```python
 def data_pulse(trend_score, risk_score):
