@@ -1,0 +1,12 @@
+{
+  "name": "alyssium-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc",
+    "start": "live-server"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "live-server": "^1.2.1"
+  }
+}
