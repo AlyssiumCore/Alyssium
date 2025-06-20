@@ -1,3 +1,66 @@
-flask
-numpy
-scikit-learn
+from flask import Flask, request, jsonify
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from datetime import datetime
+import json
+
+app = Flask(__name__)
+
+def classify_token(risk_score):
+    if risk_score > 0.8:
+        return "High Risk"
+    elif risk_score > 0.5:
+        return "Moderate Risk"
+    else:
+        return "Low Risk"
+
+def summarize_metrics(metrics):
+    if not metrics:
+        return {"avg": 0, "max": 0, "min": 0, "median": 0, "std_dev": 0}
+    metrics_np = np.array(metrics)
+    return {
+        "avg": np.mean(metrics_np),
+        "max": np.max(metrics_np),
+        "min": np.min(metrics_np),
+        "median": np.median(metrics_np),
+        "std_dev": np.std(metrics_np)
+    }
+
+def calculate_risk_score(price_change, liquidity, flags):
+    base_score = abs(price_change) / max(liquidity, 1)
+    penalty = 0
+    penalty += 0.3 if 'suspicious' in flags else 0
+    penalty += 0.2 if 'blacklisted' in flags else 0
+    penalty += 0.15 if 'honeypot' in flags else 0
+    final_score = base_score + penalty
+    return round(min(final_score, 1.0), 3)
+
+def analyze_token(token_metrics):
+    risk_scores = []
+    for i in range(len(token_metrics.get("price_changes", []))):
+        pc = token_metrics["price_changes"][i]
+        liq = token_metrics["liquidity"][i] if i < len(token_metrics.get("liquidity", [])) else 1
+        flgs = token_metrics["flags"][i] if i < len(token_metrics.get("flags", [])) else []
+        score = calculate_risk_score(pc, liq, flgs)
+        risk_scores.append(score)
+    summary = summarize_metrics(risk_scores)
+    classification = classify_token(summary["avg"])
+    return {
+        "risk_scores": risk_scores,
+        "summary": summary,
+        "classification": classification
+    }
+
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    data = request.json
+    if not data:
+        return jsonify({"error": "No JSON payload received"}), 400
+    try:
+        result = analyze_token(data)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True)
