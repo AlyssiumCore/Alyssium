@@ -1,18 +1,41 @@
 body {
   background-color: #0e0e1f;
   color: #e0e0e0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding: 20px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
 .token-card {
   border: 1px solid #444;
-  padding: 15px;
-  background: rgba(255,255,255,0.02);
-  border-radius: 8px;
-  max-width: 400px;
+  padding: 20px 25px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  max-width: 420px;
   margin: 20px 0;
+  box-shadow: 0 0 15px rgba(0, 140, 255, 0.2);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  cursor: default;
 }
+
+.token-card:hover {
+  box-shadow: 0 0 25px rgba(0, 180, 255, 0.5);
+  transform: translateY(-5px);
+}
+
 .token-name, .token-risk {
-  font-size: 18px;
-  margin: 8px 0;
+  font-size: 20px;
+  margin: 10px 0;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #cce6ff;
+}
+
+.token-risk {
+  color: #ff6b6b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
