@@ -2,16 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Alyssium Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="app">
-    <h1>Welcome to Alyssium</h1>
-    <div class="token-card">
-      <p class="token-name">Token: <span id="token-name">Loading...</span></p>
-      <p class="token-risk">Risk: <span id="token-risk">Unknown</span></p>
-    </div>
+    <header class="app-header">
+      <h1 class="app-title">Alyssium Dashboard</h1>
+      <nav class="app-nav" aria-label="Main navigation">
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#token-info">Token info</a></li>
+          <li><a href="#analytics">Analytics</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="app-main">
+      <section id="token-info" class="card token-card">
+        <h2 class="card-title">Token details</h2>
+        <div class="card-content">
+          <p class="token-label">Name:<span id="token-name" class="token-value">Loading</span></p>
+          <p class="token-label">Risk level:<span id="token-risk" class="token-value">Unknown</span></p>
+        </div>
+      </section>
+      <section id="analytics" class="card analytics-card">
+        <h2 class="card-title">Market analytics</h2>
+        <div id="analytics-content" class="card-content">
+          <p>Data loading please wait</p>
+        </div>
+      </section>
+    </main>
+    <footer class="app-footer">
+      <p>&copy; 2025 Alyssium AI engine</p>
+    </footer>
   </div>
   <script src="ely_script_dashboard.js"></script>
 </body>
