@@ -2,7 +2,7 @@
 
 ## 🔍 Overview
 
-**Alyssium** is a next-generation AI tool for blockchain risk analysis. It reveals hidden threats, analyzes token safety, and delivers real-time alerts — helping Seekers and Oracles navigate the market with foresight and precision. Alyssium isn’t just an extension — it’s your intuitive guide through the unseen patterns of the chain.
+**Alyssium** is a next-generation AI tool for blockchain risk analysis. It reveals hidden threats, analyzes token safety, and delivers real-time alerts — helping Seekers and Oracles navigate the market with foresight and precision
 
 ---
 
