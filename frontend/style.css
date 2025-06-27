@@ -1,41 +1,119 @@
-body {
-  background-color: #0e0e1f;
-  color: #e0e0e0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 20px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.token-card {
-  border: 1px solid #444;
-  padding: 20px 25px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 10px;
-  max-width: 420px;
-  margin: 20px 0;
-  box-shadow: 0 0 15px rgba(0, 140, 255, 0.2);
-  transition: box-shadow 0.3s ease, transform 0.2s ease;
-  cursor: default;
-}
-
-.token-card:hover {
-  box-shadow: 0 0 25px rgba(0, 180, 255, 0.5);
-  transform: translateY(-5px);
-}
-
-.token-name, .token-risk {
-  font-size: 20px;
-  margin: 10px 0;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: #cce6ff;
-}
-
-.token-risk {
-  color: #ff6b6b;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alyssium Dashboard</title>
+  <style>
+    body {
+      background-color: #0e0e1f;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #333;
+      margin-bottom: 2rem;
+    }
+    .app-title {
+      font-size: 2rem;
+      font-weight: 600;
+    }
+    .app-nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+      padding: 0;
+      margin: 0;
+    }
+    .app-nav a {
+      color: #80d8ff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .app-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 0 15px rgba(0, 140, 255, 0.2);
+      transition: box-shadow 0.3s ease, transform 0.2s ease;
+    }
+    .card:hover {
+      box-shadow: 0 0 25px rgba(0, 180, 255, 0.5);
+      transform: translateY(-5px);
+    }
+    .card-title {
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 0.5rem;
+    }
+    .token-label {
+      font-size: 1rem;
+      margin: 0.75rem 0;
+    }
+    .token-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+    .token-value.risk {
+      color: #ff6b6b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .app-footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <h1 class="app-title">Alyssium Dashboard</h1>
+      <nav class="app-nav" aria-label="Main navigation">
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#token-info">Token info</a></li>
+          <li><a href="#analytics">Analytics</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="app-main">
+      <section id="token-info" class="card token-card">
+        <h2 class="card-title">Token details</h2>
+        <div class="card-content">
+          <p class="token-label">Name:<span id="token-name" class="token-value">Loading...</span></p>
+          <p class="token-label">Risk level:<span id="token-risk" class="token-value risk">Unknown</span></p>
+        </div>
+      </section>
+      <section id="analytics" class="card analytics-card">
+        <h2 class="card-title">Market analytics</h2>
+        <div id="analytics-content" class="card-content">
+          <p>Data loading, please wait...</p>
+        </div>
+      </section>
+    </main>
+    <footer class="app-footer">
+      <p>&copy; 2025 Alyssium AI engine</p>
+    </footer>
+  </div>
+  <script src="ely_script_dashboard.js"></script>
+</body>
+</html>
