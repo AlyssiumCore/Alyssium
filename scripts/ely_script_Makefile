@@ -1,2 +1,34 @@
+# Makefile for building AlyssiumCore components
+
+.PHONY: build clean install test
+
 build:
-	@echo "Building project..."
+	@echo "🔧 Building AlyssiumCore..."
+	@mkdir -p dist
+	@cp -r backend dist/
+	@cp -r scripts dist/
+	@echo "Build completed and output stored in ./dist"
+
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf dist __pycache__
+	@echo "Clean complete"
+
+install:
+	@echo "Installing Python dependencies..."
+	@pip install -r requirements.txt
+	@echo "Dependencies installed"
+
+test:
+	@echo "Running basic tests..."
+	@python3 -m unittest discover backend/tests/
+	@echo  "All tests passed"
+
+help:
+	@echo ""
+	@echo "AlyssiumCore Makefile — Available Commands:"
+	@echo "  build     → Build the project into ./dist"
+	@echo "  clean     → Remove generated files"
+	@echo "  install   → Install dependencies"
+	@echo "  test      → Run unit tests"
+	@echo ""
