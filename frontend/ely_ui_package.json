@@ -1,9 +1,12 @@
 {
   "name": "alyssium-frontend",
   "version": "1.0.0",
+  "description": "Frontend layer for AlyssiumCore — lightweight AI interface and integration viewer",
   "scripts": {
-    "build": "tsc",
-    "start": "live-server"
+    "start": "live-server --port=8080 --host=localhost --open=./index.html",
+    "build": "tsc --project tsconfig.json",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "typescript": "^4.5.4",
