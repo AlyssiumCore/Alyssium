@@ -1,5 +1,4 @@
-// cache-manager.ts
-// Cache management utilities for Alyssium Core
+
 
 export interface CacheOptions {
   ttlSeconds?: number  // Time-to-live in seconds
@@ -15,11 +14,13 @@ export class CacheManager {
   private defaultTTL: number
 
   constructor(options?: CacheOptions) {
-    // default TTL: 60 seconds
+    // Default TTL: 60 seconds
     this.defaultTTL = (options?.ttlSeconds ?? 60) * 1000
   }
 
-  // Set a value in the cache with optional custom TTL
+  /**
+   * Store a value in cache with optional TTL override
+   */
   set<T>(key: string, value: T, ttlSeconds?: number): void {
     const ttl = (ttlSeconds ?? this.defaultTTL / 1000) * 1000
     const entry: CacheEntry<T> = {
@@ -29,7 +30,9 @@ export class CacheManager {
     this.store.set(key, entry)
   }
 
-  // Get a value; returns undefined if expired or missing
+  /**
+   * Retrieve a cached value. Returns undefined if expired or missing.
+   */
   get<T>(key: string): T | undefined {
     const entry = this.store.get(key) as CacheEntry<T> | undefined
     if (!entry) return undefined
@@ -42,17 +45,35 @@ export class CacheManager {
     return entry.value
   }
 
-  // Delete a specific key
+  /**
+   * Check if key exists and is not expired
+   */
+  has(key: string): boolean {
+    const entry = this.store.get(key)
+    if (!entry || Date.now() > entry.expiresAt) {
+      this.store.delete(key)
+      return false
+    }
+    return true
+  }
+
+  /**
+   * Remove a specific key
+   */
   delete(key: string): void {
     this.store.delete(key)
   }
 
-  // Clear all cache entries
+  /**
+   * Remove all cache entries
+   */
   clear(): void {
     this.store.clear()
   }
 
-  // Purge expired entries (useful for manual cleanup)
+  /**
+   * Remove only expired entries
+   */
   purgeExpired(): void {
     const now = Date.now()
     for (const [key, entry] of this.store.entries()) {
@@ -61,9 +82,11 @@ export class CacheManager {
       }
     }
   }
-}
 
-// Example usage:
-// const cache = new CacheManager({ ttlSeconds: 120 })
-// cache.set('tokenData', { price: 10.5 })
-// const data = cache.get<{ price: number }>('tokenData')
+  /**
+   * Current number of entries in the cache (expired entries may be present)
+   */
+  size(): number {
+    return this.store.size
+  }
+}
