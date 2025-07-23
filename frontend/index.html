@@ -8,38 +8,90 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
   <div id="app">
-    <header class="app-header">
+    <header class="app-header" role="banner">
       <h1 class="app-title">Alyssium Dashboard</h1>
-      <nav class="app-nav" aria-label="Main navigation">
+      <nav class="app-nav" role="navigation" aria-label="Main navigation">
         <ul>
-          <li><a href="#overview">Overview</a></li>
-          <li><a href="#token-info">Token info</a></li>
+          <li><a href="#token-info">Token Info</a></li>
           <li><a href="#analytics">Analytics</a></li>
         </ul>
       </nav>
     </header>
-    <main class="app-main">
-      <section id="token-info" class="card token-card">
-        <h2 class="card-title">Token details</h2>
+
+    <main id="main-content" class="app-main" role="main">
+      <section id="token-info" class="card token-card" aria-live="polite">
+        <h2 class="card-title">Token Details</h2>
         <div class="card-content">
-          <p class="token-label">Name:<span id="token-name" class="token-value">Loading</span></p>
-          <p class="token-label">Risk level:<span id="token-risk" class="token-value">Unknown</span></p>
+          <p><strong>Name:</strong> <span id="token-name">Loading…</span></p>
+          <p><strong>Risk Level:</strong> <span id="token-risk">Unknown</span></p>
+          <button id="refresh-token" class="btn">Refresh</button>
         </div>
       </section>
+
       <section id="analytics" class="card analytics-card">
-        <h2 class="card-title">Market analytics</h2>
-        <div id="analytics-content" class="card-content">
-          <p>Data loading please wait</p>
+        <h2 class="card-title">Market Analytics</h2>
+        <div class="card-content">
+          <canvas id="price-chart" aria-label="Price over time" role="img"></canvas>
+          <canvas id="risk-chart" aria-label="Risk trend over time" role="img"></canvas>
         </div>
       </section>
     </main>
-    <footer class="app-footer">
-      <p>&copy; 2025 Alyssium AI engine</p>
+
+    <footer class="app-footer" role="contentinfo">
+      <p>&copy; 2025 Alyssium AI Engine</p>
     </footer>
   </div>
+
+  <script>
+    const nameEl = document.getElementById('token-name');
+    const riskEl = document.getElementById('token-risk');
+    const refreshBtn = document.getElementById('refresh-token');
+    const priceCtx = document.getElementById('price-chart').getContext('2d');
+    const riskCtx  = document.getElementById('risk-chart').getContext('2d');
+
+    let priceChart = new Chart(priceCtx, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Price', data: [] }] },
+      options: { responsive: true }
+    });
+
+    let riskChart = new Chart(riskCtx, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Risk Level', data: [] }] },
+      options: { responsive: true }
+    });
+
+    async function fetchTokenData() {
+      try {
+        const res = await fetch('/api/alyssium/token');
+        const { name, riskLevel, history } = await res.json();
+        nameEl.textContent = name;
+        riskEl.textContent = riskLevel;
+
+        priceChart.data.labels = history.map(h => h.time);
+        priceChart.data.datasets[0].data = history.map(h => h.price);
+        priceChart.update();
+
+        riskChart.data.labels = history.map(h => h.time);
+        riskChart.data.datasets[0].data = history.map(h => h.risk);
+        riskChart.update();
+      } catch (e) {
+        console.error('Fetch error', e);
+      }
+    }
+
+    refreshBtn.addEventListener('click', fetchTokenData);
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchTokenData();
+    });
+  </script>
+
   <script src="ely_script_dashboard.js"></script>
 </body>
 </html>
