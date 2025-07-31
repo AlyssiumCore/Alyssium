@@ -1,34 +1,63 @@
-# Makefile for building AlyssiumCore components
+# Makefile for building and managing AlyssiumCore components
 
-.PHONY: build clean install test
+PYTHON        := python3
+PIP           := pip
+VENV_DIR      := .venv
+DIST_DIR      := dist
+TEST_DIR      := backend/tests
+
+.PHONY: all build clean install lint test package help
+
+all: build
 
 build:
 	@echo "🔧 Building AlyssiumCore..."
-	@mkdir -p dist
-	@cp -r backend dist/
-	@cp -r scripts dist/
-	@echo "Build completed and output stored in ./dist"
+	@rm -rf $(DIST_DIR)
+	@mkdir -p $(DIST_DIR)
+	@cp -r backend $(DIST_DIR)/
+	@cp -r scripts $(DIST_DIR)/
+	@echo "✔ Build complete → $(DIST_DIR)/"
 
 clean:
-	@echo "Cleaning build artifacts..."
-	@rm -rf dist __pycache__
-	@echo "Clean complete"
+	@echo "🧹 Cleaning build artifacts..."
+	@rm -rf $(DIST_DIR) __pycache__ $(VENV_DIR)
+	@echo "✔ Clean complete"
 
-install:
-	@echo "Installing Python dependencies..."
-	@pip install -r requirements.txt
-	@echo "Dependencies installed"
+install: $(VENV_DIR)/bin/activate
+
+$(VENV_DIR)/bin/activate:
+	@echo "⚙️  Setting up virtualenv and installing dependencies..."
+	@$(PYTHON) -m venv $(VENV_DIR)
+	@$(VENV_DIR)/bin/$(PIP) install --upgrade pip
+	@$(VENV_DIR)/bin/$(PIP) install -r requirements.txt
+	@echo "✔ Dependencies installed in $(VENV_DIR)/"
+
+lint:
+	@echo "🔍 Running lint and format checks..."
+	@$(VENV_DIR)/bin/flake8 backend scripts
+	@$(VENV_DIR)/bin/isort --check-only .
+	@$(VENV_DIR)/bin/black --check .
+	@echo "✔ Lint and format checks passed"
 
 test:
-	@echo "Running basic tests..."
-	@python3 -m unittest discover backend/tests/
-	@echo  "All tests passed"
+	@echo "🧪 Running tests and coverage..."
+	@$(VENV_DIR)/bin/coverage run -m unittest discover $(TEST_DIR)
+	@$(VENV_DIR)/bin/coverage report --fail-under=80
+	@echo "✔ All tests passed with sufficient coverage"
+
+package: build
+	@echo "📦 Packaging release..."
+	@tar czf alyssiumcore-$$($(PYTHON) -c "import backend; print(backend.__version__)")\.tar.gz $(DIST_DIR)
+	@echo "✔ Package created"
 
 help:
 	@echo ""
-	@echo "AlyssiumCore Makefile — Available Commands:"
-	@echo "  build     → Build the project into ./dist"
-	@echo "  clean     → Remove generated files"
-	@echo "  install   → Install dependencies"
-	@echo "  test      → Run unit tests"
+	@echo "AlyssiumCore Makefile — Commands:"
+	@echo "  build     → Build project into $(DIST_DIR)/"
+	@echo "  clean     → Remove generated files and virtualenv"
+	@echo "  install   → Create venv & install dependencies"
+	@echo "  lint      → Run flake8, isort, black checks"
+	@echo "  test      → Run tests with coverage ≥80%"
+	@echo "  package   → Create tar.gz release from build"
+	@echo "  help      → Show this help message"
 	@echo ""
