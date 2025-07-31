@@ -1,81 +1,127 @@
-'use strict';
+'use strict'
 
 // --- Sigil Function Factory ---
-function createSigilFunc(offset) {
-    return function(x) {
-        if (x < 0) return Math.exp(x);
-        else if (x % 2 === 0) return x * x + offset;
-        else return x + offset * 2;
-    };
+export const createSigilFunc = (offset) => (x) => {
+  if (typeof x !== 'number') {
+    throw new TypeError(`Expected number, got ${typeof x}`)
+  }
+  if (x < 0) return Math.exp(x)
+  if (x % 2 === 0) return x * x + offset
+  return x + offset * 2
 }
 
-// --- Sigil Functions Array (0-35) ---
-const sigilFuncs = Array.from({ length: 36 }, (_, i) => createSigilFunc(i));
+// --- Sigil Functions Array (0–35) ---
+export const sigilFuncs = Array.from({ length: 36 }, (_, i) => createSigilFunc(i))
 
 // --- Utilities ---
-function normalizeData(data) {
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    return data.map(x => (x - min) / (max - min));
+let _normCache = null
+export function normalizeData(data) {
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('normalizeData expects a non-empty array')
+  }
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+  // cache range if same input length
+  _normCache = range
+  return data.map((x) => (x - min) / range)
 }
 
-function predictAnomalyScore(input, weights) {
-    return input.reduce((acc, val, idx) => acc + val * weights[idx], 0);
+export function predictAnomalyScore(input, weights) {
+  if (!Array.isArray(input) || !Array.isArray(weights) || input.length !== weights.length) {
+    throw new Error('predictAnomalyScore expects two arrays of equal length')
+  }
+  return input.reduce((acc, val, idx) => acc + val * weights[idx], 0)
 }
 
-function movingAverage(data, windowSize) {
-    let result = [];
-    for (let i = 0; i < data.length - windowSize + 1; i++) {
-        let window = data.slice(i, i + windowSize);
-        result.push(window.reduce((a, b) => a + b) / windowSize);
-    }
-    return result;
+export function movingAverage(data, windowSize) {
+  if (!Array.isArray(data) || windowSize < 1) {
+    throw new Error('movingAverage expects an array and windowSize ≥ 1')
+  }
+  const result = []
+  for (let i = 0; i <= data.length - windowSize; i++) {
+    const window = data.slice(i, i + windowSize)
+    result.push(window.reduce((a, b) => a + b, 0) / windowSize)
+  }
+  return result
 }
 
 // --- Token Health ---
-function assessTokenHealth(data) {
-    if (data.volume > 100000 && data.sentiment > 0.7) return "🚀 Healthy";
-    else if (data.volume < 1000) return "⚠️ Low Volume Risk";
-    else return "🟠 Neutral";
+export function assessTokenHealth({ volume, sentiment }) {
+  if (typeof volume !== 'number' || typeof sentiment !== 'number') {
+    throw new TypeError('assessTokenHealth expects numeric volume and sentiment')
+  }
+  if (volume > 100_000 && sentiment > 0.7) return '🚀 Healthy'
+  if (volume < 1_000) return '⚠️ Low Volume Risk'
+  return '🟠 Neutral'
 }
 
 // --- Risk Map ---
-function generateRiskHeatmap(matrix) {
-    return matrix.map(row =>
-        row.map(value => value > 0.8 ? "🔴" : value > 0.5 ? "🟠" : "🟢").join(" ")
-    ).join("\n");
+export function generateRiskHeatmap(matrix) {
+  if (!Array.isArray(matrix)) {
+    throw new TypeError('generateRiskHeatmap expects a 2D array')
+  }
+  return matrix
+    .map((row) => {
+      if (!Array.isArray(row)) {
+        throw new TypeError('generateRiskHeatmap expects a 2D array')
+      }
+      return row
+        .map((value) => {
+          if (value > 0.8) return '🔴'
+          if (value > 0.5) return '🟠'
+          return '🟢'
+        })
+        .join(' ')
+    })
+    .join('\n')
 }
 
 // --- Signal Logic ---
-function calculateMomentum(data) {
-    let gains = 0;
-    for (let i = 1; i < data.length; i++) {
-        if (data[i] > data[i - 1]) gains++;
-    }
-    return gains / (data.length - 1);
+export function calculateMomentum(data) {
+  if (!Array.isArray(data) || data.length < 2) {
+    throw new Error('calculateMomentum expects an array with at least 2 elements')
+  }
+  let gains = 0
+  for (let i = 1; i < data.length; i++) {
+    if (data[i] > data[i - 1]) gains++
+  }
+  return gains / (data.length - 1)
 }
 
 // --- Simulations ---
-function simulateWalletActivity(wallets, events) {
-    const sim = {};
-    wallets.forEach(addr => {
-        sim[addr] = Math.floor(Math.random() * events);
-    });
-    return sim;
+// Replace random simulation with deterministic event counts
+export function simulateWalletActivity(wallets, eventsPerWallet) {
+  if (!Array.isArray(wallets) || typeof eventsPerWallet !== 'object') {
+    throw new TypeError('simulateWalletActivity expects an array and an events-per-wallet map')
+  }
+  return wallets.reduce((acc, addr) => {
+    acc[addr] = eventsPerWallet[addr] ?? 0
+    return acc
+  }, {})
 }
 
-function detectWhaleTransfers(transactions) {
-    return transactions.filter(tx => tx.amount > 100000);
+export function detectWhaleTransfers(transactions, threshold = 100_000) {
+  if (!Array.isArray(transactions)) {
+    throw new TypeError('detectWhaleTransfers expects an array of transactions')
+  }
+  return transactions.filter((tx) => typeof tx.amount === 'number' && tx.amount > threshold)
 }
 
-function formatTokenName(name) {
-    return name.trim().toUpperCase();
+export function formatTokenName(name) {
+  if (typeof name !== 'string') {
+    throw new TypeError('formatTokenName expects a string')
+  }
+  return name.trim().toUpperCase()
 }
 
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
+export function debounce(func, wait = 300) {
+  if (typeof func !== 'function') {
+    throw new TypeError('debounce expects a function')
+  }
+  let timeout = null
+  return (...args) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }
 }
