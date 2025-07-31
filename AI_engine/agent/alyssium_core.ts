@@ -1,56 +1,96 @@
+// alyssium_core.ts — Solana-adapted core logic for AI analytics engine
 
-// alyssium_core.ts - main Solana-adapted core logic for AI analytics engine
+import { Connection, PublicKey, AccountInfo } from "@solana/web3.js"
 
-import { Connection, PublicKey } from "@solana/web3.js"
+export interface TokenData {
+  lamports: number
+  executable: boolean
+  owner: string
+  dataLength: number
+}
+
+export type PatternType = "Accumulation" | "Distribution" | "Neutral"
 
 export class AlyssiumCore {
   private connection: Connection
   private programId: PublicKey
+  private sigilWeights: number[]
 
-  constructor(rpcUrl: string, programIdStr: string) {
+  /**
+   * @param rpcUrl        Solana RPC endpoint
+   * @param programIdStr  On-chain program ID
+   * @param sigilWeights  Optional weights for sigil score (defaults to [0.4,0.3,0.2,0.1])
+   */
+  constructor(
+    rpcUrl: string,
+    programIdStr: string,
+    sigilWeights: number[] = [0.4, 0.3, 0.2, 0.1]
+  ) {
     this.connection = new Connection(rpcUrl, "confirmed")
     this.programId = new PublicKey(programIdStr)
+    this.sigilWeights = sigilWeights
   }
 
-  async fetchTokenData(address: string): Promise<any> {
+  /** Fetch raw account info for a token address */
+  async fetchTokenData(address: string): Promise<TokenData> {
     const pubkey = new PublicKey(address)
-    const accountInfo = await this.connection.getAccountInfo(pubkey)
-    if (!accountInfo) throw new Error("Token data not found")
-
+    const info = await this.connection.getAccountInfo(pubkey)
+    if (!info) {
+      throw new Error(`No account info for ${address}`)
+    }
     return {
-      lamports: accountInfo.lamports,
-      executable: accountInfo.executable,
-      owner: accountInfo.owner.toBase58(),
-      dataLength: accountInfo.data.length
+      lamports: info.lamports,
+      executable: info.executable,
+      owner: info.owner.toBase58(),
+      dataLength: info.data.length,
     }
   }
 
+  /**
+   * Compute a sigil score over the first N inputs
+   * where N = this.sigilWeights.length
+   */
   computeSigilScore(input: number[]): number {
-    const weights = [0.4, 0.3, 0.2, 0.1]
-    const limited = input.slice(0, weights.length)
-    return limited.reduce((acc, val, idx) => acc + val * weights[idx], 0)
+    const len = Math.min(input.length, this.sigilWeights.length)
+    return input
+      .slice(0, len)
+      .reduce((sum, val, idx) => sum + val * this.sigilWeights[idx], 0)
   }
 
-  detectOnChainPattern(values: number[]): string {
-    const avg = values.reduce((sum, v) => sum + v, 0) / values.length
-    const threshold = values.filter(v => v > avg).length
-
-    if (threshold > values.length * 0.7) return "Pattern: Accumulation"
-    if (threshold < values.length * 0.3) return "Pattern: Distribution"
+  /**
+   * Detect on-chain pattern based on proportion above average
+   * @returns "Pattern: Accumulation" | "Pattern: Distribution" | "Pattern: Neutral"
+   */
+  detectOnChainPattern(values: number[], accumulationThreshold = 0.7, distributionThreshold = 0.3): string {
+    if (values.length === 0) {
+      return "Pattern: Neutral"
+    }
+    const avg = values.reduce((s, v) => s + v, 0) / values.length
+    const aboveCount = values.filter((v) => v > avg).length
+    const ratio = aboveCount / values.length
+    if (ratio >= accumulationThreshold) return "Pattern: Accumulation"
+    if (ratio <= distributionThreshold)   return "Pattern: Distribution"
     return "Pattern: Neutral"
   }
 
-  async validateAccessKey(wallet: string): Promise<boolean> {
+  /** Check if a wallet has enough SOL for access (default 0.01 SOL) */
+  async validateAccessKey(wallet: string, minLamports = 10_000_000): Promise<boolean> {
     const pubkey = new PublicKey(wallet)
     const balance = await this.connection.getBalance(pubkey)
-    return balance > 10000000 // e.g., 0.01 SOL minimum access
+    return balance >= minLamports
   }
 
-  analyzeWalletHealth(holdings: number, activityScore: number): string {
-    if (holdings > 10000 && activityScore > 75) return "Prime Wallet"
-    if (holdings < 1000 || activityScore < 30) return "High Risk"
+  /**
+   * Classify wallet health
+   * @param holdings      number of tokens held
+   * @param activityScore normalized 0–100 activity metric
+   */
+  analyzeWalletHealth(holdings: number, activityScore: number): "Prime Wallet" | "High Risk" | "Stable" {
+    if (holdings > 10_000 && activityScore > 75) return "Prime Wallet"
+    if (holdings < 1_000 || activityScore < 30)  return "High Risk"
     return "Stable"
   }
 }
 
 export default AlyssiumCore
+    
