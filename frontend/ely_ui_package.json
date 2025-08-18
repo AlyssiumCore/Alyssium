@@ -2,14 +2,21 @@
   "name": "alyssium-frontend",
   "version": "1.0.0",
   "description": "Frontend layer for AlyssiumCore — lightweight AI interface and integration viewer",
+  "type": "module",
   "scripts": {
-    "start": "live-server --port=8080 --host=localhost --open=./index.html",
+    "dev": "live-server --port=8080 --host=localhost --open=./index.html",
+    "start": "npm run dev",
     "build": "tsc --project tsconfig.json",
     "watch": "tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rimraf dist",
+    "prepare": "npm run build",
+    "prebuild": "npm run clean",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,json,html,css}\""
   },
   "devDependencies": {
     "typescript": "^4.5.4",
-    "live-server": "^1.2.1"
+    "live-server": "^1.2.1",
+    "rimraf": "^5.0.5",
+    "prettier": "^3.0.0"
   }
 }
