@@ -1,5 +1,4 @@
-// security-scanner.ts
-// Security scanning tools for Alyssium Core Security module
+
 
 import { ApiAdapter } from './api-adapter'
 import { ThreatIndicator, threatIndicators, findIndicatorById } from './threat-intel'
@@ -15,9 +14,7 @@ export interface ScanResult {
   details: string
 }
 
-/**
- * SecurityScanner integrates on-chain scans with threat intelligence
- */
+
 export class SecurityScanner {
   private api: ApiAdapter
 
@@ -25,9 +22,7 @@ export class SecurityScanner {
     this.api = apiAdapter
   }
 
-  /**
-   * Scan a smart contract for known vulnerabilities
-   */
+
   async scanContract(address: string): Promise<ScanResult[]> {
     // Fetch contract metadata and code analysis report
     const report = await this.api.get<{ vulnerabilities: Array<{ id: string; info: string }> }>(
@@ -45,9 +40,7 @@ export class SecurityScanner {
     })
   }
 
-  /**
-   * Audit recent transactions for suspicious patterns
-   */
+
   async auditTransactions(address: string, count: number = 50): Promise<ScanResult[]> {
     const txs = await this.api.get<{ transactions: Array<{ id: string; value: string; tags?: string[] }> }>(
       `wallets/${address}/transactions?limit=${count}`
@@ -68,9 +61,6 @@ export class SecurityScanner {
     return results
   }
 
-  /**
-   * Run a comprehensive security check combining contract and tx scans
-   */
   async fullSecurityAudit(
     contractAddress: string,
     walletAddress: string,
