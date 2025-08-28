@@ -1,63 +1,100 @@
 # Makefile for building and managing AlyssiumCore components
 
-PYTHON        := python3
-PIP           := pip
-VENV_DIR      := .venv
-DIST_DIR      := dist
-TEST_DIR      := backend/tests
+# -------- Config --------
+SHELL        := /bin/bash
+.SHELLFLAGS  := -eu -o pipefail -c
 
-.PHONY: all build clean install lint test package help
+PYTHON       ?= python3
+PIP          ?= pip
+VENV_DIR     ?= .venv
+VENV_BIN     := $(VENV_DIR)/bin
+DIST_DIR     ?= dist
+TEST_DIR     ?= backend/tests
+REQ_FILE     ?= requirements.txt
 
+# Derive version from backend package (falls back to 0.0.0 if missing)
+VERSION := $(shell $(PYTHON) - <<'PY'
+import importlib, sys
+try:
+    m = importlib.import_module("backend")
+    print(getattr(m, "__version__", "0.0.0"))
+except Exception:
+    print("0.0.0")
+PY
+)
+PKG_NAME := alyssiumcore-$(VERSION).tar.gz
+
+.DEFAULT_GOAL := build
+
+.PHONY: all build clean distclean install lint test package help check-venv check-req
+
+# -------- Meta --------
 all: build
 
+# -------- Build --------
 build:
-	@echo "🔧 Building AlyssiumCore..."
-	@rm -rf $(DIST_DIR)
-	@mkdir -p $(DIST_DIR)
-	@cp -r backend $(DIST_DIR)/
-	@cp -r scripts $(DIST_DIR)/
-	@echo "✔ Build complete → $(DIST_DIR)/"
+	@echo "Building AlyssiumCore..."
+	@rm -rf "$(DIST_DIR)"
+	@mkdir -p "$(DIST_DIR)"
+	@cp -r backend "$(DIST_DIR)/"
+	@cp -r scripts "$(DIST_DIR)/"
+	@echo "Build complete -> $(DIST_DIR)/"
 
+# -------- Clean --------
 clean:
-	@echo "🧹 Cleaning build artifacts..."
-	@rm -rf $(DIST_DIR) __pycache__ $(VENV_DIR)
-	@echo "✔ Clean complete"
+	@echo "Cleaning build artifacts..."
+	@rm -rf "$(DIST_DIR)" "__pycache__" "$(VENV_DIR)"
+	@echo "Clean complete"
 
-install: $(VENV_DIR)/bin/activate
+distclean: clean
+	@echo "Removing additional caches..."
+	@rm -rf .coverage .pytest_cache .mypy_cache .ruff_cache
+	@find . -name "__pycache__" -type d -prune -exec rm -rf {} +
+	@echo "Distclean complete"
 
-$(VENV_DIR)/bin/activate:
-	@echo "⚙️  Setting up virtualenv and installing dependencies..."
-	@$(PYTHON) -m venv $(VENV_DIR)
-	@$(VENV_DIR)/bin/$(PIP) install --upgrade pip
-	@$(VENV_DIR)/bin/$(PIP) install -r requirements.txt
-	@echo "✔ Dependencies installed in $(VENV_DIR)/"
+# -------- Env / Install --------
+install: $(VENV_BIN)/python
 
-lint:
-	@echo "🔍 Running lint and format checks..."
-	@$(VENV_DIR)/bin/flake8 backend scripts
-	@$(VENV_DIR)/bin/isort --check-only .
-	@$(VENV_DIR)/bin/black --check .
-	@echo "✔ Lint and format checks passed"
+$(VENV_BIN)/python: | check-req
+	@echo "Setting up virtualenv and installing dependencies..."
+	@$(PYTHON) -m venv "$(VENV_DIR)"
+	@"$(VENV_BIN)/$(PIP)" install --upgrade pip
+	@"$(VENV_BIN)/$(PIP)" install -r "$(REQ_FILE)"
+	@echo "Dependencies installed in $(VENV_DIR)/"
 
-test:
-	@echo "🧪 Running tests and coverage..."
-	@$(VENV_DIR)/bin/coverage run -m unittest discover $(TEST_DIR)
-	@$(VENV_DIR)/bin/coverage report --fail-under=80
-	@echo "✔ All tests passed with sufficient coverage"
+check-req:
+	@test -f "$(REQ_FILE)" || { echo "Missing $(REQ_FILE)"; exit 1; }
 
+# -------- Lint / Test --------
+lint: install
+	@echo "Running lint and format checks..."
+	@"$(VENV_BIN)/flake8" backend scripts
+	@"$(VENV_BIN)/isort" --check-only .
+	@"$(VENV_BIN)/black" --check .
+	@echo "Lint and format checks passed"
+
+test: install
+	@echo "Running tests and coverage..."
+	@"$(VENV_BIN)/coverage" run -m unittest discover "$(TEST_DIR)"
+	@"$(VENV_BIN)/coverage" report --fail-under=80
+	@echo "All tests passed with sufficient coverage"
+
+# -------- Package --------
 package: build
-	@echo "📦 Packaging release..."
-	@tar czf alyssiumcore-$$($(PYTHON) -c "import backend; print(backend.__version__)")\.tar.gz $(DIST_DIR)
-	@echo "✔ Package created"
+	@echo "Packaging release..."
+	@tar czf "$(PKG_NAME)" "$(DIST_DIR)"
+	@echo "Package created -> $(PKG_NAME)"
 
+# -------- Help --------
 help:
 	@echo ""
 	@echo "AlyssiumCore Makefile — Commands:"
-	@echo "  build     → Build project into $(DIST_DIR)/"
-	@echo "  clean     → Remove generated files and virtualenv"
-	@echo "  install   → Create venv & install dependencies"
-	@echo "  lint      → Run flake8, isort, black checks"
-	@echo "  test      → Run tests with coverage ≥80%"
-	@echo "  package   → Create tar.gz release from build"
-	@echo "  help      → Show this help message"
+	@echo "  build      -> Build project into $(DIST_DIR)/"
+	@echo "  clean      -> Remove generated files and virtualenv"
+	@echo "  distclean  -> Clean plus caches (.coverage, __pycache__, etc.)"
+	@echo "  install    -> Create venv & install dependencies"
+	@echo "  lint       -> Run flake8, isort, black checks"
+	@echo "  test       -> Run tests with coverage >= 80%"
+	@echo "  package    -> Create tar.gz release from build (version: $(VERSION))"
+	@echo "  help       -> Show this help message"
 	@echo ""
