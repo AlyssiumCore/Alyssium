@@ -1,31 +1,158 @@
-# Python
+# ---------------------------
+# Python core artifacts
+# ---------------------------
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.so
+*.dll
 
-# Environment
+# Byte-compiled / optimized / dynamic
+*$py.class
+
+# ---------------------------
+# Environments
+# ---------------------------
 .env
 .env.*
+.venv/
+venv/
+ENV/
+env/
+.conda/
+conda-env/
+pip-wheel-metadata/
+pip-log.txt
 
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Poetry / Pipenv
+.poetry/
+poetry.lock
+Pipfile.lock
 
-# OS
-.DS_Store
-Thumbs.db
+# ---------------------------
+# Build & packaging
+# ---------------------------
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# IDEs
+# Cython / compiled extensions
+*.c
+*.cpp
+*.h
+*.pyx
+*.pyd
+*.pdb
+
+# ---------------------------
+# Testing & coverage
+# ---------------------------
+.coverage
+.coverage.*
+.cache/
+.nox/
+.tox/
+.pytest_cache/
+htmlcov/
+coverage.xml
+pytestdebug.log
+
+# ---------------------------
+# Type checking / linting
+# ---------------------------
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+.pyre/
+ruff_cache/
+.pyright/
+.spyproject/
+
+# ---------------------------
+# Notebooks & data artifacts
+# ---------------------------
+.ipynb_checkpoints/
+*.ipynb_convert/
+.jupyter/
+# Large data files (opt-in keep a /data/.gitkeep)
+data/
+datasets/
+*.parquet
+*.feather
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.db
+*.sqlite
+*.sqlite3
+*.h5
+*.hdf5
+*.pickle
+*.pkl
+*.joblib
+
+# ---------------------------
+# Documentation
+# ---------------------------
+docs/_build/
+site/
+builddocs/
+*.doctree
+**/Thumbs.db
+
+# ---------------------------
+# Logs & runtime
+# ---------------------------
+*.log
+logs/
+celerybeat-schedule
+celerybeat.pid
+*.pid
+
+# ---------------------------
+# Editors / IDEs
+# ---------------------------
 .vscode/
 .idea/
+*.iml
+*.sublime-*
+*.code-workspace
 
-# Logs
-*.log
+# ---------------------------
+# OS-specific
+# ---------------------------
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+Icon?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Build
-dist/
-build/
-*.egg-info/
+# ---------------------------
+# Misc
+# ---------------------------
+*.retry
+*.orig
+*.bak
+*.swp
+*.swo
+*.tmp
+*.temp
