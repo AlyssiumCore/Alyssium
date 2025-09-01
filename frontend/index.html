@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Alyssium Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -25,20 +27,22 @@
     </header>
 
     <main id="main-content" class="app-main" role="main">
-      <section id="token-info" class="card token-card" aria-live="polite">
+      <section id="token-info" class="card token-card" aria-live="polite" aria-busy="true">
         <h2 class="card-title">Token Details</h2>
         <div class="card-content">
           <p><strong>Name:</strong> <span id="token-name">Loading…</span></p>
           <p><strong>Risk Level:</strong> <span id="token-risk">Unknown</span></p>
-          <button id="refresh-token" class="btn">Refresh</button>
+          <p id="token-error" class="visually-hidden" role="alert"></p>
+          <button id="refresh-token" class="btn" type="button" aria-label="Refresh token data" disabled>Refresh</button>
         </div>
       </section>
 
       <section id="analytics" class="card analytics-card">
         <h2 class="card-title">Market Analytics</h2>
         <div class="card-content">
-          <canvas id="price-chart" aria-label="Price over time" role="img"></canvas>
-          <canvas id="risk-chart" aria-label="Risk trend over time" role="img"></canvas>
+          <!-- Set intrinsic height to avoid layout shift -->
+          <canvas id="price-chart" height="180" aria-label="Price over time" role="img"></canvas>
+          <canvas id="risk-chart" height="180" aria-label="Risk trend over time" role="img"></canvas>
         </div>
       </section>
     </main>
@@ -49,49 +53,132 @@
   </div>
 
   <script>
-    const nameEl = document.getElementById('token-name');
-    const riskEl = document.getElementById('token-risk');
-    const refreshBtn = document.getElementById('refresh-token');
-    const priceCtx = document.getElementById('price-chart').getContext('2d');
-    const riskCtx  = document.getElementById('risk-chart').getContext('2d');
+    // State
+    const nameEl = document.getElementById("token-name");
+    const riskEl = document.getElementById("token-risk");
+    const errorEl = document.getElementById("token-error");
+    const refreshBtn = document.getElementById("refresh-token");
+    const tokenInfoSection = document.getElementById("token-info");
 
-    let priceChart = new Chart(priceCtx, {
-      type: 'line',
-      data: { labels: [], datasets: [{ label: 'Price', data: [] }] },
-      options: { responsive: true }
+    let priceChart, riskChart;
+
+    // Chart.js setup (after Chart.js loads)
+    document.addEventListener("DOMContentLoaded", () => {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const priceCtx = document.getElementById("price-chart").getContext("2d");
+      priceChart = new Chart(priceCtx, {
+        type: "line",
+        data: { labels: [], datasets: [{ label: "Price (USD)", data: [], tension: 0.2, pointRadius: 0 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: prefersReducedMotion ? false : { duration: 300 },
+          parsing: false,
+          normalized: true,
+          scales: {
+            x: { title: { display: true, text: "Time" }, ticks: { maxRotation: 0 } },
+            y: { title: { display: true, text: "USD" }, beginAtZero: false }
+          },
+          plugins: { legend: { display: true } }
+        }
+      });
+
+      const riskCtx = document.getElementById("risk-chart").getContext("2d");
+      riskChart = new Chart(riskCtx, {
+        type: "line",
+        data: { labels: [], datasets: [{ label: "Risk Level", data: [], tension: 0.2, pointRadius: 0 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: prefersReducedMotion ? false : { duration: 300 },
+          parsing: false,
+          normalized: true,
+          scales: {
+            x: { title: { display: true, text: "Time" }, ticks: { maxRotation: 0 } },
+            y: { title: { display: true, text: "Score" }, beginAtZero: true, suggestedMax: 100 }
+          },
+          plugins: { legend: { display: true } }
+        }
+      });
+
+      // Enable refresh and fetch first data load
+      refreshBtn.disabled = false;
+      fetchTokenData();
     });
 
-    let riskChart = new Chart(riskCtx, {
-      type: 'line',
-      data: { labels: [], datasets: [{ label: 'Risk Level', data: [] }] },
-      options: { responsive: true }
-    });
+    // Fetch with timeout
+    function fetchWithTimeout(resource, options = {}, timeoutMs = 10000) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(resource, { ...options, signal: controller.signal })
+        .finally(() => clearTimeout(id));
+    }
+
+    function setBusy(isBusy) {
+      tokenInfoSection.setAttribute("aria-busy", String(isBusy));
+      refreshBtn.disabled = isBusy;
+    }
+
+    function showError(message) {
+      errorEl.classList.remove("visually-hidden");
+      errorEl.textContent = message;
+    }
+
+    function clearError() {
+      errorEl.classList.add("visually-hidden");
+      errorEl.textContent = "";
+    }
+
+    function updateCharts(history) {
+      // Expecting history elements like: { time: "2025-09-01T12:00:00Z", price: number, risk: number }
+      const labels = history.map(h => h.time);
+      priceChart.data.labels = labels;
+      priceChart.data.datasets[0].data = history.map(h => Number(h.price) || 0);
+      priceChart.update("none");
+
+      riskChart.data.labels = labels;
+      riskChart.data.datasets[0].data = history.map(h => Number(h.risk) || 0);
+      riskChart.update("none");
+    }
 
     async function fetchTokenData() {
+      setBusy(true);
+      clearError();
       try {
-        const res = await fetch('/api/alyssium/token');
-        const { name, riskLevel, history } = await res.json();
+        const res = await fetchWithTimeout("/api/alyssium/token", {
+          headers: { "Accept": "application/json" }
+        }, 12000);
+
+        if (!res.ok) {
+          throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+        }
+
+        const payload = await res.json();
+        // Defensive parsing
+        const name = typeof payload.name === "string" ? payload.name : "Unknown";
+        const riskLevel = payload.riskLevel ?? "Unknown";
+        const history = Array.isArray(payload.history) ? payload.history : [];
+
         nameEl.textContent = name;
-        riskEl.textContent = riskLevel;
+        riskEl.textContent = String(riskLevel);
 
-        priceChart.data.labels = history.map(h => h.time);
-        priceChart.data.datasets[0].data = history.map(h => h.price);
-        priceChart.update();
-
-        riskChart.data.labels = history.map(h => h.time);
-        riskChart.data.datasets[0].data = history.map(h => h.risk);
-        riskChart.update();
+        updateCharts(history);
       } catch (e) {
-        console.error('Fetch error', e);
+        console.error("Fetch error", e);
+        showError(e instanceof Error ? e.message : "Unknown error");
+      } finally {
+        setBusy(false);
       }
     }
 
-    refreshBtn.addEventListener('click', fetchTokenData);
-    document.addEventListener('DOMContentLoaded', () => {
+    refreshBtn.addEventListener("click", () => {
       fetchTokenData();
     });
   </script>
 
-  <script src="ely_script_dashboard.js"></script>
+  <!-- Optional: your own app logic -->
+  <script src="ely_script_dashboard.js" defer></script>
 </body>
 </html>
+
